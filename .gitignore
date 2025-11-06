@@ -1,4 +1,8 @@
 # Byte-compiled / optimized / DLL files
+
+#THIS IS BECAUSE OF THE LARGE DATA FILE
+*.csv
+
 __pycache__/
 *.py[codz]
 *$py.class
