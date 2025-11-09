@@ -2,6 +2,7 @@ import sys
 import argparse
 from models.baseline import run_baseline
 from models.main_model import MainModel
+from evaluation.eval import run_evaluation
 
 """
 Main execution script for training, tuning, and evaluating models.
@@ -69,3 +70,4 @@ if __name__ == "__main__":
     y_pred = mm.predict(model, X_test)
 
     # Evaluate results (takes in y_test, y_pred)
+    run_evaluation(y_test, y_pred)

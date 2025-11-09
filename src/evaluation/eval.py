@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from sklearn.metrics import ConfusionMatrixDisplay
 
+# TODO : Improve evaluation by adding more metrics and visualizations (Likely after progress report)
 def run_evaluation(baseline_results, main_results):
     # Baseline confusion matrix
     print("\n--- Baseline Confusion Matrix ---")
