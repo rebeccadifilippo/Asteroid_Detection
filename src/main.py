@@ -8,6 +8,7 @@ from models.main_model import MainModel
 from evaluation.eval import run_evaluation
 from preprocessing.data_preprocessing import preprocess_data
 from preprocessing.data_preprocessing import normalize_data
+from evaluation.eval import run_evaluation, compare_models
 
 
 
@@ -31,7 +32,7 @@ def get_args():
 
     # Optional flag: hyperparameter tuning
     parser.add_argument(
-        '--hyperparameter_tune',  # no short '-h', to avoid clash with help
+        '-ht','--hyperparameter_tune',  # no short '-h', to avoid clash with help
         action='store_true',
         help='Perform hyperparameter tuning before training the model.'
     )
@@ -108,11 +109,16 @@ if __name__ == "__main__":
     # After downloading and preprocessing
     df = pd.read_csv(preprocessed_csv)
 
+
     # Initialize feature engineer
     engineer = feature_engineering(target_col='pha')
 
     # Call select_features passing args.feature_set
     X_train, y_train, X_test, y_test = engineer.select_features(df, feature_set=args.feature_set)
+
+    #print("NaNs in y_train:", y_train.isna().sum())
+    #print("NaNs in y_test:", y_test.isna().sum())
+    
 
     print("Data ready!")
     print(f"Training samples: {X_train.shape[0]}, Test samples: {X_test.shape[0]}, Features: {X_train.shape[1]}")
@@ -126,11 +132,10 @@ if __name__ == "__main__":
     X_train_norm, X_test_norm,  =  normalize_data(X_train, X_test)
 
 
-
     #models
     baseline = BaselineModel()
     baseline.fit(y_train)
-    '''mm = MainModel()
+    mm = MainModel()
 
     # Hyperparameter tuning if asked for in args
     if args.hyperparameter_tune:
@@ -146,13 +151,14 @@ if __name__ == "__main__":
     # Run models (run on X_test, returns y_pred)
     y_pred_main_model = mm.predict(model, X_test_norm)
 
-    # Evaluate results (takes in y_test, y_pred)
-    run_evaluation(y_test, y_pred_main_model)
-
-
-    # Predict
     y_baseline_pred = baseline.predict(X_test_norm)
-    run_evaluation(y_baseline_pred , y_pred_main_model)'''
+
+    # Evaluate each model individually
+    results_baseline = run_evaluation(y_test, y_baseline_pred, model_name="Baseline Model", cmap="Blues")
+    results_main = run_evaluation(y_test, y_pred_main_model, model_name="Main Model", cmap="Greens")
+
+    # Compare them visually and numerically
+    compare_models(results_baseline, results_main)
   
 
 

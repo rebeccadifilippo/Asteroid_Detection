@@ -29,7 +29,7 @@ def preprocess_data(raw_path="data/raw/dataset.csv", save_path="data/preprocesse
 
     # Convert everything else to numeric (scientific notation works)
     df = df.apply(pd.to_numeric, errors='coerce')
-
+    
 
     # Fill remaining NaNs with column mean
     df = df.fillna(df.mean())

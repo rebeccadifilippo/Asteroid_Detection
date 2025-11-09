@@ -19,7 +19,10 @@ class feature_engineering:
         }
 
     def select_features(self, df, feature_set='all', test_size=0.2, random_state=42):
-
+        # Convert pha and neo columns to 0/1 safely
+        for col in ['pha', 'neo']:
+            if col in df.columns:
+                df[col] = df[col].astype(float).astype(int)
         # Select features
         if feature_set.lower() == 'all':
             X = df.drop(columns=[self.target_col])
@@ -33,6 +36,8 @@ class feature_engineering:
 
         # Target
         y = df[self.target_col]
+
+        
         
         # Simple train/test split for testing (no stratify)
         X_train, X_test, y_train, y_test = train_test_split(
