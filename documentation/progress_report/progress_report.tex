@@ -104,7 +104,28 @@
 
 \noindent We are using a public dataset available on Kaggle, licensed under Open Data Commons Open Database License, by user sakhawak18. The database is called \textit{Asteroid Dataset}, found \href{https://www.kaggle.com/datasets/sakhawat18/asteroid-dataset}{here} \cite{10.1007/978-981-19-7528-8_4}. As stated in the summary, it is officially maintained and updated weekly, and has a Kaggle-calculated usability score of 10.00. The original source of the data is NASA's Jet Propulsion Laboratory Small-Body and Asteroid databases, containing both orbital and physical properties for hundreds of thousands of known asteroids \citep{database}. \newline
 
-\noindent The dataset contains orbital and physical properties of thousands of discovered and analyzed asteroids. There is a target label \texttt{pha} present, representing the classification to be predicted by the model. The features that will be used in the model are enumerated in in \hyperref[sec:Features]{Features}. The dataset also contains identifier, metadata, epoch and reference data features that will not be used in our model. The excluded features are: 
+\noindent The dataset contains orbital and physical properties of thousands of discovered and analyzed asteroids. There is a target label \texttt{pha} present, representing the classification to be predicted by the model. These are the features our model will use, and are as follows:
+
+\begin{itemize}
+    \item \textbf{Flags:} \texttt{neo} (Near-Earth Object flag), \texttt{pha} (Potentially Hazardous Asteroid flag, 1 = hazardous, 0 = non-hazardous)
+
+    \item \textbf{Physical Properties:} \texttt{H} (absolute magnitude), \texttt{diameter} (km), \texttt{albedo} (surface reflectivity), \texttt{diameter\_sigma} (uncertainty in diameter)
+
+    \item \textbf{Orbital Elements:}
+    \begin{itemize}
+        \item Core orbital parameters: \texttt{e} (eccentricity), \texttt{a} (semi-major axis), \texttt{q} (perihelion distance), \texttt{i} (inclination), \texttt{om} ($\Omega$, longitude of ascending node), \texttt{w} ($\omega$, argument of perihelion), \texttt{ma} (mean anomaly)
+        \item Derived orbital distances: \texttt{ad} (aphelion distance), \texttt{moid} (minimum orbit intersection distance), \texttt{moid\_ld} (MOID in lunar distances)
+        \item Motion and timing: \texttt{n} (mean motion), \texttt{tp} (time of perihelion passage), \texttt{per} (orbital period in days), \texttt{per\_y} (orbital period in years)
+    \end{itemize}
+
+    \item \textbf{Uncertainties (Standard Deviations):} \texttt{sigma\_e}, \texttt{sigma\_a}, \texttt{sigma\_q}, \texttt{sigma\_i}, \texttt{sigma\_om}, \texttt{sigma\_w}, \texttt{sigma\_ma}, \texttt{sigma\_ad}, \texttt{sigma\_n}, \texttt{sigma\_tp}, \texttt{sigma\_per}
+
+    \item \textbf{Model Fit Quality:} \texttt{rms} (root-mean-square residual, indicating fit accuracy of the orbital solution)
+
+    \item \textbf{Target Label:} \texttt{pha} (Potentially Hazardous Asteroid flag — the classification label to be predicted)
+\end{itemize}
+
+The dataset also contains identifier, metadata, epoch and reference data features that will not be used in our model. The excluded features are: 
 
 \begin{itemize}
     \item \textbf{Identifiers and Metadata:} \texttt{id}, \texttt{spkid}, \texttt{full\_name}, \texttt{pdes}, \texttt{name}, \texttt{prefix}, \texttt{orbit\_id}, \texttt{class}
@@ -112,12 +133,18 @@
     \item \textbf{Epoch and Reference Data:} \texttt{epoch}, \texttt{epoch\_mjd} (Modified Julian Date), \texttt{epoch\_cal} (calendar format), \texttt{equinox}, \texttt{tp\_cal} (perihelion passage in calendar format) \newline 
 \end{itemize}
 
-\noindent We will import the dataset using the Kaggle API, complying with its terms of service. Once the dataset is imported it will then be preprocessed, which includes a number of steps. The dataset contains some non-numeric columns in the identifiers and metadata (including but not limited to \texttt{id}, \texttt{name}, and \texttt{class}) that will be dropped as they cannot contribute to prediction. Some categorical categories, including the \texttt{pha} flag, will be converted to numerical binary values and processed as such. Any string values remaining in the dataset will be forced to \texttt{NaN} to ensure that no unpredicted errors occur in processing. The resulting missing values and their object will then be handled or dropped. \newline
+\noindent We will import the dataset using the Kaggle API, complying with its terms of service. Once the dataset is imported it will then be preprocessed, which includes a number of steps. The dataset contains some non-numeric columns in the identifiers and metadata (including but not limited to \texttt{id}, \texttt{name}, and \texttt{class}) that will be dropped as they cannot contribute to prediction. Some categorical categories, including the \texttt{pha} flag, will be converted to numerical binary values and processed as such. Any string values remaining in the dataset will be forced to \texttt{NaN} to ensure that no unpredicted errors occur in processing. The resulting missing values will then be handled by converting them to the column mean. \newline
 
 \section{Features}
 \label{sec:Features}
 
-Describe any features you used for your model, or how your data was input to your model. Are you doing feature engineering or feature selection? Are you learning embeddings? Is it all part of one neural network? Refer to item 2. This may range from 0.25 pages to 0.5 pages.
+\textit{Describe any features you used for your model, or how your data was input to your model. Are you doing feature engineering or feature selection? Are you learning embeddings? Is it all part of one neural network? Refer to item 2. This may range from 0.25 pages to 0.5 pages.} \newline
+
+\noindent As mentioned, the model handles most but not all features provided by the dataset. This is because the dataset provides data that is not required for predictive purposes, which in this case includes identifiers, metadata, epoch and reference data. The included features contain the data that is most relevant to the categorization of an NEA as hazardous. \newline
+
+\noindent NASA categorizes PHAs based on the value of \texttt{moid} (minimum orbit intersection distance), \texttt{H} (absolute magnitude), and \texttt{albedo} (surface reflectivity). The minimum orbit intersection distance is the closest the asteroid will come to Earth on its natural orbit path, with hazardous asteroids having a \texttt{moid} $\leq 0.05$au, or astronomical units (149,597,870,700 m, which approximates the distance between the Earth and the sun). The absolute magnitude of an asteroid represents the visual magnitude an observer would record if the asteroid were placed exactly 1au away and 1au from the Sun at a zero phase angle (effectively measuring size). PHAs are characterized by an absolute magnitude \texttt{H} $\leq 22$. This magnitude translates to asteroids that are no more than 140m in diameter, and corresponds to an assumed \texttt{albedo} = 0.14. The albedo of an asteroid represents its ratio of the light received to light reflected by that body, ranging from 0 (pitch black) to 1 (perfect reflector). Our model will take in these features as well as the others to produce an accurate prediction of the \texttt{pha} flag. \newline
+
+\noindent We are using feature selection in our model. Feature engineering involves creating new features based on overlapping/redundant features from the original dataset. We may have some very similar features, but at this point have chosen not to engineer them for use with this model. We will not be using embedding, as any relevant data to the prediction is represented numerically, and we do not have to process string data or images. 
 
 \section{Implementation}
 
