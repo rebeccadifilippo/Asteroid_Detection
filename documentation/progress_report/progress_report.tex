@@ -76,8 +76,6 @@
 
 \section{Introduction}
 
-\textit{Here, write a brief introduction to the problem you are solving. This can be adapted from your problem description and motivation from the original proposal. This should be around 0.25-0.5 pages. }\newline
-
 \noindent There are tens of thousands of Near Earth Asteroids (NEAs) on orbit paths close to Earth, with more being discovered daily \citep{NASANEAs}. Some of these become classified as Potentially Hazardous Asteroids (PHAs), as they become large enough to potentially cause a problem. As more and more NEAs are discovered every day, it would be helpful to develop a machine learning classification system that would be able to classify NEAs to determine which could be hazardous. Classification of asteroids requires time-consuming analysis of a variety of features. An autonomous model would allow space agencies to dedicate more resources to observation of the detected PHAs and developing mitigation strategies. \newline
 
 \noindent Accurate and expedient classification of asteroids is crucial to determining potential risks to planetary health. This project will develop a model to classify NEAs based on physical and orbital characteristics to determine which could be hazardous to Earth. This project will clean and pre-process the dataset, selects relevant features, and trains a model using machine learning to classify asteroids as hazardous or non-hazardous. We will handle class imbalance using techniques like oversampling( e.g., SMOTE)), or weighted loss, and then evaluate the model. \newline
@@ -85,8 +83,6 @@
 \noindent The dataset we will use contains an existing classification for, as well as features of thousands of discovered asteroids. The dataset is derived from NASA and JPL's Small-body and Asteroid database. The dataset contains 45 features of any known object, and we will engineer a feature set that yields the best results, clean the data and handle imbalance. \newline
 
 \section{Related Work}
-
-\textit{Here, talk about the related work you encountered for your approach. Cite at least 5 references. Refer to item 2. No one has done exactly your task? Write about the most similar thing you can find. This should be around 0.25-0.5 pages.} \newline 
 
 \noindent \citet{NASANEOs} defines Potentially Hazardous Asteroids (PHAs) based on parameters that affect the asteroid's potential to be threatening, including its closest distance to Earth, size and albedo. There have been several systems developed using various machine learning models. \newline
 
@@ -96,11 +92,9 @@
 
 \noindent Another article published in 2019 compares the Hierarchal Clustering Method (HCM) to a newer, \textit{supervised learning HCM} method. The supervised HCM method proved superior to the classical method, correctly identifying all asteroids within the target family and and yielding an accuracy of about 85\% \citep{HCM}. \newline
 
-\noindent A different approach was taken by \citet{SVM}, who elected to observe subgroups of NEAs with high concentrations of PHAs, to better determine which characteristics can be used as flags of hazardous asteroids. Using a \textit{Support Vector Machine (SVM)} model, the extracted subgroups of NEAs contained about 90\% of the real and virtual PHAs. \newline 
+\noindent A different approach was taken by \citet{SVM}, who observed subgroups of NEAs with high concentrations of PHAs, to better determine which characteristics can be used as flags of hazardous asteroids. Using a \textit{Support Vector Machine (SVM)} model, the extracted subgroups of NEAs contained about 90\% of the real and virtual PHAs. \newline 
 
 \section{Dataset}
-
-\textit{You should write about your dataset here, following the guidelines regarding item 1. This section may be 0.5-1 pages. Depending on your specific dataset, you may want to include subsections for the preprocessing, annotation, etc.} \newline
 
 \noindent We are using a public dataset available on Kaggle, licensed under Open Data Commons Open Database License, by user sakhawak18. The database is called \textit{Asteroid Dataset}, found \href{https://www.kaggle.com/datasets/sakhawat18/asteroid-dataset}{here} \cite{10.1007/978-981-19-7528-8_4}. As stated in the summary, it is officially maintained and updated weekly, and has a Kaggle-calculated usability score of 10.00. The original source of the data is NASA's Jet Propulsion Laboratory Small-Body and Asteroid databases, containing both orbital and physical properties for hundreds of thousands of known asteroids \citep{database}. \newline
 
@@ -137,8 +131,6 @@ The dataset also contains identifier, metadata, epoch and reference data feature
 
 \section{Features}
 
-\textit{Describe any features you used for your model, or how your data was input to your model. Are you doing feature engineering or feature selection? Are you learning embeddings? Is it all part of one neural network? Refer to item 2. This may range from 0.25 pages to 0.5 pages.} \newline
-
 \noindent As mentioned, the model handles most but not all features provided by the dataset. This is because the dataset provides data that is not required for predictive purposes, which in this case includes identifiers, metadata, epoch and reference data. The included features contain the data that is most relevant to the categorization of an NEA as hazardous. \newline
 
 \noindent NASA categorizes PHAs based on the value of \texttt{moid} (minimum orbit intersection distance), \texttt{H} (absolute magnitude), and \texttt{albedo} (surface reflectivity). The minimum orbit intersection distance is the closest the asteroid will come to Earth on its natural orbit path, with hazardous asteroids having a \texttt{moid} $\leq 0.05$au, or astronomical units (149,597,870,700 m, which approximates the distance between the Earth and the sun). The absolute magnitude of an asteroid represents the visual magnitude an observer would record if the asteroid were placed exactly 1au away and 1au from the Sun at a zero phase angle (effectively measuring size). PHAs are characterized by an absolute magnitude \texttt{H} $\leq 22$. This magnitude translates to asteroids that are no more than 140m in diameter, and corresponds to an assumed \texttt{albedo} = 0.14. The albedo of an asteroid represents its ratio of the light received to light reflected by that body, ranging from 0 (pitch black) to 1 (perfect reflector). Our model will take in these features as well as the others to produce an accurate prediction of the \texttt{pha} flag. \newline
@@ -146,8 +138,6 @@ The dataset also contains identifier, metadata, epoch and reference data feature
 \noindent We are using feature selection in our model. Feature engineering involves creating new features based on overlapping/redundant features from the original dataset. We may have some very similar features, but at this point have chosen not to engineer them for use with this model. Our \textit{feature\textunderscore engineering} class contains code to select which feature sets to use. We will not be using embedding, as any relevant data to the prediction is represented numerically, and we do not have to process string data or images.
 
 \section{Implementation}
-
-\textit{Describe your model and implementation here. Refer to item 4. This may take around a page.} \newline
 
 \noindent When we started this project, our plan was to use a Gradient Boosted Trees model. We chose this model for a number of reasons. From research it seems like they handle structured tabular data well, manage non-linear relationships, and allow weighting for class imbalance, all of which apply to our dataset. Furthermore, research into existing solutions and related work confirmed that Gradient Boosted Trees have potential for and already have highly accurate results when classifying PHAs. \newline
 
@@ -170,8 +160,6 @@ The dataset also contains identifier, metadata, epoch and reference data feature
 \noindent Each time the program runs, a Baseline Model is trained. The Baseline Model predicts the majority class (hazardous or non-hazardous) in dataset by counting which classifier occurs most frequently. Since the vast majority of samples are classified as non-hazardous, the Baseline Model predicts 0 for all samples. This Baseline Model exists only to establish a very weak baseline so that we can see that our Main Model performs better. If a Main Model has been previously trained, it is then loaded. If there is no existing model file, one is trained and saved for future use. The Main Model and Baseline Model are then both used to predict the testing data that was set aside during the earlier 80-20 train-test split. The predicted data is then evaluated, and the models' results are compared. \newline
 
 \section{Results and Evaluation}
-
-\textit{How are you evaluating your model? What results do you have so far? What are your baselines? Refer to item 5. This may take around 0.5 pages.} \newline
 
 \noindent At this stage of the project, our model is performing quite well. As mentioned, we are using a train-test split of 80\% training data and 20\% testing data, with cross-validation used for hyperparameter tuning. We are evaluating our model's performance based on accuracy, precision, recall, and resulting F1 score, as well as through a confusion matrix. The F1 score is the most important measure as it represents a harmonic mean of the precision and recall of a model. We represent the performance of the Baseline Model compared to the Main Model in a bar graph: \newline
 
@@ -238,8 +226,6 @@ The dataset also contains identifier, metadata, epoch and reference data feature
 \noindent As shown in the confusion matrix, the tuned model correctly classifies an additional 71 samples as non-hazardous, however correctly classifies 15 fewer samples as hazardous. This net increase to correct identification is reflected in the scores shown in Table 2. The tuned model yielded an increase in accuracy, precision, and overall F1 score. \newline
 
 \section{Feedback and Plans}
-
-\textit{Write about your plans for the remainder of the project. This should include a discussion of the feedback you received from your TA, and how you plan to improve your approach. Reflect on your implementation and areas for improvement. Refer to item 6. This may be around 0.5 pages.} \newline
 
 \noindent TA feedback was received on Monday, November 10th. The group presented the confusion matrix generated by our model, which was met with approval. The report was not near completion at this time, but we were advised to include many of our graphs and confusion matrices in the report for visual representation of our results. To reflect our implementation of this feedback, here is our List of Figures and List of Tables \newline
 
@@ -323,11 +309,12 @@ This an example cross-reference to Equation~\ref{eq:example}. You can also write
 \end{comment}
 \section*{Team Contributions}
 
-\textit{Write in this section a few sentences describing the contributions of each team member. What did each member work on? Refer to item 7.} \newline
-
 \noindent \textbf{Claire Nielsen} handled the research into related works and strategies, and wrote the Progress Report. \newline
 
 \noindent \textbf{Rebecca Di Filippo} and \textbf{Jake Read} handled the coding of the model up to this point in the project. Rebecca handled the preprocessing of the dataset, feature engineering and selection, and Baseline Model for comparison. Jake wrote the starting gradient boosting algorithm, loss function, and optimization technique. Rebecca and Jake collaborated on the evaluation strategies for the model (including the training/testing split, cross-validation, and metrics). 
+
+\section*{Repository Link}
+\noindent Our GitHub repository can be found \href{https://github.com/rebeccadifilippo/ML_project}{here}.
 
 % Bibliography entries for the entire Anthology, followed by custom entries
 %\bibliography{custom,anthology-overleaf-1,anthology-overleaf-2}
