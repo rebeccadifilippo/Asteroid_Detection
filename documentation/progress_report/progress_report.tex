@@ -143,7 +143,7 @@ The dataset also contains identifier, metadata, epoch and reference data feature
 
 \noindent NASA categorizes PHAs based on the value of \texttt{moid} (minimum orbit intersection distance), \texttt{H} (absolute magnitude), and \texttt{albedo} (surface reflectivity). The minimum orbit intersection distance is the closest the asteroid will come to Earth on its natural orbit path, with hazardous asteroids having a \texttt{moid} $\leq 0.05$au, or astronomical units (149,597,870,700 m, which approximates the distance between the Earth and the sun). The absolute magnitude of an asteroid represents the visual magnitude an observer would record if the asteroid were placed exactly 1au away and 1au from the Sun at a zero phase angle (effectively measuring size). PHAs are characterized by an absolute magnitude \texttt{H} $\leq 22$. This magnitude translates to asteroids that are no more than 140m in diameter, and corresponds to an assumed \texttt{albedo} = 0.14. The albedo of an asteroid represents its ratio of the light received to light reflected by that body, ranging from 0 (pitch black) to 1 (perfect reflector). Our model will take in these features as well as the others to produce an accurate prediction of the \texttt{pha} flag. \newline
 
-\noindent We are using feature selection in our model. Feature engineering involves creating new features based on overlapping/redundant features from the original dataset. We may have some very similar features, but at this point have chosen not to engineer them for use with this model. Our \textit{feature\textunderscore engineering} class contains code to select which feature sets to use. We will not be using embedding, as any relevant data to the prediction is represented numerically, and we do not have to process string data or images. CHECK
+\noindent We are using feature selection in our model. Feature engineering involves creating new features based on overlapping/redundant features from the original dataset. We may have some very similar features, but at this point have chosen not to engineer them for use with this model. Our \textit{feature\textunderscore engineering} class contains code to select which feature sets to use. We will not be using embedding, as any relevant data to the prediction is represented numerically, and we do not have to process string data or images.
 
 \section{Implementation}
 
@@ -151,8 +151,7 @@ The dataset also contains identifier, metadata, epoch and reference data feature
 
 \noindent When we started this project, our plan was to use a Gradient Boosted Trees model. We chose this model for a number of reasons. From research it seems like they handle structured tabular data well, manage non-linear relationships, and allow weighting for class imbalance, all of which apply to our dataset. Furthermore, research into existing solutions and related work confirmed that Gradient Boosted Trees have potential for and already have highly accurate results when classifying PHAs. \newline
 
-\noindent The model we have implemented is a Histogram-based Gradient Boosting Classifier (HGBC). This model outperforms traditional Gradient Boosting with large sample sizes, which applies to this project. This will be referred to as a Main model. The Main model uses a logistic loss function for classification, since it is the only loss function available to a Histogram-based Gradient Boosting Classifier. Since we are performing binary classification, the model uses binary logistic loss, also known as binary cross-entropy.
-\textbf {got this from here: https://scikit-learn.org/stable/modules/ensemble.html#gradient-boosting, are we always using binary cross-entropy? describe optimization technique?} \newline
+\noindent The model we have implemented is a Histogram-based Gradient Boosting Classifier (HGBC). This model outperforms traditional Gradient Boosting with large sample sizes, which applies to this project. This will be referred to as a Main Model. The Main Model uses a logistic loss function for classification, since it is the only loss function available to a Histogram-based Gradient Boosting Classifier. Since we are performing binary classification, the model uses binary logistic loss, also known as binary cross-entropy. We have optimized the model using hyperparameter tuning, which the user can enable or disable. \newline
 
 \noindent Histogram-based Gradient Boosting Classifiers are much faster than traditional Gradient Boosting Classifiers (GBCs). GBCs require sorting of all samples present for each feature, resulting in high node splitting complexity of $O(n_{features} * n_{samples}\log{}n_{samples})$ at every node. HGBCs do not use the costly operation of sorting samples and instead reference an implicitly sorted histogram. Building a histogram has complexity $O(n_{samples})$, so the node splitting complexity of HGBCs is $O(n_{features} * n_{samples})$, which is much lower \citep{ScikitHGBCs}. \newline
 
@@ -160,27 +159,94 @@ The dataset also contains identifier, metadata, epoch and reference data feature
 \begin{itemize}
     \item \texttt{-ht}, to run hyperparameter tuning before training the model. 
     \item \texttt{-fs}, to change the feature set used for training. Any combination may be used, default is all. 
-    \item \texttt{-ms}, to specify a save path to save the trained model. 
+    \item \texttt{-ms}, to specify a save path for the trained model. 
     \item \texttt{-ml}, to specify a save math to load the trained model from. \newline 
 \end{itemize}
 
-\noindent Assuming the program is run with default arguments, the data is then downloaded (or loaded from existing raw save) and preprocessed (or loaded from existing preprocessed save). The data is then split into training and testing data, with 80\% allocated to training and 20\% allocated to testing. After the test-train split, it is normalized. CHECK \newline
+\noindent Assuming the program is run with default arguments, the data is then downloaded (or loaded from existing raw save) and preprocessed (or loaded from existing preprocessed save). The data is then split into training and testing data, with 80\% allocated to training and 20\% allocated to testing. After the test-train split, it is normalized. \newline
 
-\noindent If desired, the hyperparameter tuning is then run on the Main model, which finds the best parameters or the model by random search. This yields tuned hyperparameters for learning rate, maximum tree depth, and maximum number of boosting iterations (trees). \newline 
+\noindent If desired, the hyperparameter tuning is then run on the Main Model, which finds the best parameters or the model by random search. This yields tuned hyperparameters for learning rate, maximum tree depth, and maximum number of boosting iterations (trees). \newline 
 
-\noindent Each time the program runs, a Baseline model is trained. The Baseline model \textbf{WHAT DOES IT DO AND WHY}. If a Main model has been previously trained, it is then loaded. If there is no existing model file, one is trained and saved for future use. The Main model and Baseline model are then both used to predict the testing data that was set aside during the earlier 80-20 train-test split. The predicted data is then evaluated, and the models' results are compared. 
+\noindent Each time the program runs, a Baseline Model is trained. The Baseline Model predicts the majority class (hazardous or non-hazardous) in dataset by counting which classifier occurs most frequently. Since the vast majority of samples are classified as non-hazardous, the Baseline Model predicts 0 for all samples. This Baseline Model exists only to establish a very weak baseline so that we can see that our Main Model performs better. If a Main Model has been previously trained, it is then loaded. If there is no existing model file, one is trained and saved for future use. The Main Model and Baseline Model are then both used to predict the testing data that was set aside during the earlier 80-20 train-test split. The predicted data is then evaluated, and the models' results are compared. \newline
 
 \section{Results and Evaluation}
 
 \textit{How are you evaluating your model? What results do you have so far? What are your baselines? Refer to item 5. This may take around 0.5 pages.} \newline
 
+\noindent At this stage of the project, our model is performing quite well. As mentioned, we are using a train-test split of 80\% training data and 20\% testing data, with cross-validation used for hyperparameter tuning. We are evaluating our model's performance based on accuracy, precision, recall, and resulting F1 score, as well as through a confusion matrix. The F1 score is the most important measure as it represents a harmonic mean of the precision and recall of a model. We represent the performance of the Baseline Model compared to the Main Model in a bar graph: \newline
+
+\begin{figure}[h]
+  \includegraphics[width=\columnwidth]{../../src/plots/model_comparison_report.png}
+  \caption{Bar graph comparing the Baseline Model's performance metrics to the Main Model with no Hyperparameter .}
+  \label{fig:bar_graph}
+\end{figure}
+
+\noindent In this graph, we can see that the Baseline Model has incredibly high accuracy, and almost zero precision, recall, and F1 score. Since the baseline classifies all samples as non-hazardous, it results in a high accuracy score since most samples are correctly classified. However, since it incorrectly classifies all hazardous asteroids, every other score is zero. However, we can also see that our Main Model performs quite well. In the trial that produced this graph, the Main Model had: \newline \newline
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{lll}
+    \hline
+    \textbf{Metric}           & \textbf{Score (\%)} \\
+    \hline
+    Accuracy    &   99.93   \\
+    Precision   &   78.53   \\
+    Recall      &   91.73   \\
+    F1 Score    &   84.62   \\
+    \hline
+  \end{tabular}
+  \caption{\label{trial_results}
+    Main Model scores produced with no Hyperparameter Tuning. \newline
+  }
+\end{table} 
+
+\noindent We also display confusion matrices to view predicted and actual true classification labels. The trial from above resulted in this confusion matrix for the Main Model: \newline
+
+\begin{figure}[h]
+  \includegraphics[width=\columnwidth]{../../src/plots/confusion_matrix_Main_Model_report.png}
+  \caption{Confusion Matrix produced by Main Model with no Hyperparameter Tuning.}
+  \label{fig:cm_1}
+\end{figure}
+
+\noindent The confusion matrix provides a visual representation of true vs. predicted classification. The dark green section represents samples that were correctly predicted to be non-hazardous, representing the vast majority of the dataset. The category with the second most samples is asteroids that the model predicted to be hazardous. This reinforces the high scores we saw previously for the Main Model's performance. \newline
+
+\noindent Note that the above bar graph and confusion matrix represent the model being trained and run without running hyperparameter tuning. Hyperparameter tuning will improve the performance and scores of the main model by randomly searching for the best parameters for the model. Below is the confusion matrix produced by a model trained with hyperparameter tuning, and a comparison of the scores. 
+
+\begin{figure}[h]
+  \includegraphics[width=\columnwidth]{../../src/plots/confusion_matrix_Main_Model_report_2.png}
+  \caption{Confusion Matrix produced by Main Model with Hyperparameter Tuning.}
+  \label{fig:cm_2}
+\end{figure}
+
+\begin{table}[h]
+  \centering
+  \begin{tabular}{lll}
+    \hline
+    \textbf{Metric}           & \textbf{M Score (\%)} & \textbf{M + HT Score (\%)} \\
+    \hline
+    Accuracy    &   99.93   &   99.96   \\
+    Precision   &   78.53   &   91.42   \\
+    Recall      &   91.73   &   88.18   \\
+    F1 Score    &   84.62   &   89.77   \\
+    \hline
+  \end{tabular}
+  \caption{\label{tuning_results_compare}
+    Comparison of Main Model with and without Hyperparameter Tuning. \newline
+  }
+\end{table} 
+
+\noindent As shown in the confusion matrix, the tuned model correctly classifies an additional 71 samples as non-hazardous, however correctly classifies 15 fewer samples as hazardous. This net increase to correct identification is reflected in the scores shown in Table 2. The tuned model yielded an increase in accuracy, precision, and overall F1 score. \newline
+
 \section{Feedback and Plans}
 
 \textit{Write about your plans for the remainder of the project. This should include a discussion of the feedback you received from your TA, and how you plan to improve your approach. Reflect on your implementation and areas for improvement. Refer to item 6. This may be around 0.5 pages.} \newline
 
-\noindent TA feedback was received on Monday, November 10th. The group presented the confusion matrix generated by our model, which was met with approval. The report was not near completion at this time, but we were advised to include many of our graphs and confusion matrices in the report for visual representation of our results. \newline
+\noindent TA feedback was received on Monday, November 10th. The group presented the confusion matrix generated by our model, which was met with approval. The report was not near completion at this time, but we were advised to include many of our graphs and confusion matrices in the report for visual representation of our results. To reflect our implementation of this feedback, here is our List of Figures and List of Tables \newline
 
-\noindent As the project progresses, we will work on refining our model through different hyperparameters, feature sets, and  loss functions. We will also add support for more command line arguments to create a more customizable experience. \textbf{CHECK} \newline
+\listoffigures
+\listoftables 
+
+\medskip \noindent As the project progresses, we will work on refining our model by running with different feature sets to see which have the greatest impact on its performance. We will also work with different techniques to handle the class imbalance due to the much smaller number of hazardous asteroids in our dataset. \newline
 
 \begin{comment}
 \section{Template Notes}
@@ -253,16 +319,15 @@ are all defined with the \verb|\label{label}| command and cross references
 to them are made with the \verb|\ref{label}| command.
 This an example cross-reference to Equation~\ref{eq:example}. You can also write equations inline, like this: $A=\pi r^2$.
 
-\end{comment}
 % \section*{Limitations}
-
+\end{comment}
 \section*{Team Contributions}
 
 \textit{Write in this section a few sentences describing the contributions of each team member. What did each member work on? Refer to item 7.} \newline
 
 \noindent \textbf{Claire Nielsen} handled the research into related works and strategies, and wrote the Progress Report. \newline
 
-\noindent \textbf{Rebecca Di Filippo} and \textbf{Jake Read} handled the coding of the model up to this point in the project. Rebecca handled the preprocessing of the dataset, feature engineering and selection, and baseline model for comparison. Jake wrote the starting gradient boosting algorithm, loss function, and optimization technique. Rebecca and Jake collaborated on the evaluation strategies for the model (including the training/testing split, cross-validation, and metrics). 
+\noindent \textbf{Rebecca Di Filippo} and \textbf{Jake Read} handled the coding of the model up to this point in the project. Rebecca handled the preprocessing of the dataset, feature engineering and selection, and Baseline Model for comparison. Jake wrote the starting gradient boosting algorithm, loss function, and optimization technique. Rebecca and Jake collaborated on the evaluation strategies for the model (including the training/testing split, cross-validation, and metrics). 
 
 % Bibliography entries for the entire Anthology, followed by custom entries
 %\bibliography{custom,anthology-overleaf-1,anthology-overleaf-2}
