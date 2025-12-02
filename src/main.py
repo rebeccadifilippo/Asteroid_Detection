@@ -8,7 +8,7 @@ from models.baseline import BaselineModel
 from models.main_model import MainModel
 from preprocessing.data_preprocessing import preprocess_data
 from preprocessing.data_preprocessing import normalize_data
-from evaluation.eval import run_evaluation, compare_models
+from evaluation.eval import run_evaluation, compare_models, log_experiment_results, plot_summary_metrics
 
 """
 Main execution script for training, tuning, and evaluating models.
@@ -159,30 +159,4 @@ if __name__ == "__main__":
     if args.model_load_path == 'trained_model.joblib':
         args.model_load_path = f'trained_model{feature_suffix}.joblib'
         
-    if args.model_save_path == 'trained_model.joblib':
-        args.model_save_path = f'trained_model{feature_suffix}.joblib'
-    # --- NEW CODE END ---
-
-    # Hyperparameter tuning if asked for in args
-    if args.hyperparameter_tune:
-        mm.hyperparameter_tuning(X_train_norm, y_train)
-
-    # Get model (this will now look for 'trained_model_physical.joblib', fail to find it, and create a new one!)
-    model, is_loaded = mm.get_model(load_path=args.model_load_path)
-
-    # Trains the model (if not loaded from file) and saves it
-    if not is_loaded:
-        model = mm.train(model, X_train_norm, y_train, save_path=args.model_save_path)
-
-    # Run models (run on X_test, returns y_pred)
-    y_pred_main_model = mm.predict(model, X_test_norm)
-    y_baseline_pred = baseline.predict(X_test_norm)
-
-    print(f"Saving plots with suffix: {feature_suffix}")
-
-    # Evaluate each model individually
-    results_baseline = run_evaluation(y_test, y_baseline_pred, model_name="Baseline_Model", cmap="Blues", filename_suffix="")
-    results_main = run_evaluation(y_test, y_pred_main_model, model_name="Main_Model", cmap="Greens", filename_suffix=feature_suffix)
-
-    # Compare them visually and numerically
-    compare_models(results_baseline, results_main, filename_suffix=feature_suffix)
+    if args.m

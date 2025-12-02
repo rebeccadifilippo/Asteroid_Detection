@@ -4,7 +4,7 @@ from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_sc
 import pandas as pd
 import os
 
-def run_evaluation(y_test, y_pred, model_name, cmap="Blues", filename_suffix=""):
+def run_evaluation(y_test, y_pred, model_name, cmap="Blues", save_plots=True, filename_suffix=""):
     """
     Evaluates a model, prints the classification report, and saves the confusion matrix.
     """
@@ -33,17 +33,23 @@ def run_evaluation(y_test, y_pred, model_name, cmap="Blues", filename_suffix="")
     cm = confusion_matrix(y_test, y_pred)
     plt.figure(figsize=(6, 5))
     sns.heatmap(cm, annot=True, fmt='d', cmap=cmap, cbar=False)
-    plt.title(f'{model_name} - Confusion Matrix-{filename_suffix}')
+    
+    # Clean title formatting
+    clean_suffix = filename_suffix.replace('_', ' ').strip()
+    title_text = f'{model_name} - Confusion Matrix ({clean_suffix})' if clean_suffix else f'{model_name} - Confusion Matrix'
+    plt.title(title_text)
+    
     plt.ylabel('True label')
     plt.xlabel('Predicted label')
     
     # Save with dynamic filename
-    os.makedirs("plots", exist_ok=True)
-    # e.g., plots/confusion_matrix_Main_Model_physical.png
-    save_path = f"plots/confusion_matrix_{model_name}{filename_suffix}.png"
-    plt.savefig(save_path)
+    if save_plots:
+        os.makedirs("plots", exist_ok=True)
+        save_path = f"plots/confusion_matrix_{model_name}{filename_suffix}.png"
+        plt.savefig(save_path)
+        print(f"Saved confusion matrix to {save_path}")
+    
     plt.close()
-    print(f"Saved confusion matrix to {save_path}")
 
     return results
 
@@ -64,14 +70,13 @@ def compare_models(results_baseline, results_main, filename_suffix=""):
 
     plt.xlabel('Metric')
     plt.ylabel('Score')
-    # Add the 'f' at the start
-    plt.title(f'Model Comparison {filename_suffix}')
+    
+    clean_suffix = filename_suffix.replace('_', ' ').strip()
+    title_text = f'Model Comparison ({clean_suffix})' if clean_suffix else 'Model Comparison'
+    plt.title(title_text)
+    
     plt.xticks(x, metrics)
     plt.ylim(0, 1.1)
     plt.legend()
     
-    # Save with dynamic filename
-    save_path = f"plots/model_comparison{filename_suffix}.png"
-    plt.savefig(save_path)
-    plt.close()
-    print(f"Saved comparison plot to {save_path}")
+    save_p
