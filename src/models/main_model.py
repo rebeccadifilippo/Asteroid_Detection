@@ -112,7 +112,7 @@ class MainModel:
         random_search = RandomizedSearchCV(
             model,
             param_distributions=param_dist, # Can choose any value from above ranges
-            n_iter=10,                      # Tries 10 different combinations (Could increase this later if needed, but it will take longer)
+            n_iter=100,                      # Tries 10 different combinations (Could increase this later if needed, but it will take longer)
             scoring=f2_scorer,              # Optimize for F2 score (Weights recall more heavily)
             cv=3,                           # 3-fold cross-validation
             # random_state=42,              # Uncomment for reproducibility (I disabled this for now to allow improvement across runs)
