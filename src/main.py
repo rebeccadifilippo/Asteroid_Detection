@@ -159,4 +159,63 @@ if __name__ == "__main__":
     if args.model_load_path == 'trained_model.joblib':
         args.model_load_path = f'trained_model{feature_suffix}.joblib'
         
-    if args.m
+    if args.model_save_path == 'trained_model.joblib':
+        args.model_save_path = f'trained_model{feature_suffix}.joblib'
+    # --- NEW CODE END ---
+
+    # Hyperparameter tuning if asked for in args
+    if args.hyperparameter_tune:
+        mm.hyperparameter_tuning(X_train_norm, y_train)
+
+    # Get model (this will now look for 'trained_model_physical.joblib', fail to find it, and create a new one!)
+    model, is_loaded = mm.get_model(load_path=args.model_load_path)
+
+    # Trains the model (if not loaded from file) and saves it
+    if not is_loaded:
+        model = mm.train(model, X_train_norm, y_train, save_path=args.model_save_path)
+
+# ... (Previous code for loading/training models) ...
+
+    # Run models (run on X_test, returns y_pred)
+    y_pred_main_model = mm.predict(model, X_test_norm)
+    y_baseline_pred = baseline.predict(X_test_norm)
+
+    # --- EVALUATION LOGIC ---
+
+    # 1. Handle Baseline Evaluation (Only save plot on first run)
+    baseline_plot_path = "plots/confusion_matrix_Baseline_Model.png"
+    save_baseline_plot = not os.path.exists(baseline_plot_path)
+
+    if save_baseline_plot:
+        print("First run detected: Saving Baseline confusion matrix...")
+
+    results_baseline = run_evaluation(
+        y_test, 
+        y_baseline_pred, 
+        model_name="Baseline_Model", 
+        cmap="Blues", 
+        save_plots=save_baseline_plot,
+        filename_suffix=""
+    )
+
+    # 2. Handle Main Model Evaluation
+    print(f"Saving Main Model plots with suffix: {feature_suffix}")
+
+    results_main = run_evaluation(
+        y_test, 
+        y_pred_main_model, 
+        model_name="Main_Model", 
+        cmap="Greens", 
+        save_plots=True,
+        filename_suffix=feature_suffix
+    )
+
+    # 3. Compare Models (Current Run)
+    compare_models(results_baseline, results_main, filename_suffix=feature_suffix)
+
+    # 4. LOG RESULTS & UPDATE SUMMARY PLOTS
+    # This appends the current run's data to results/experiment_results.csv
+    log_experiment_results(results_main, args.feature_set)
+
+    # This regenerates the 4 summary graphs using ALL data collected so far
+    plot_summary_metrics()

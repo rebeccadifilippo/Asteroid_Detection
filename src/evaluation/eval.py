@@ -79,4 +79,71 @@ def compare_models(results_baseline, results_main, filename_suffix=""):
     plt.ylim(0, 1.1)
     plt.legend()
     
-    save_p
+    save_path = f"plots/model_comparison{filename_suffix}.png"
+    plt.savefig(save_path)
+    plt.close()
+    print(f"Saved comparison plot to {save_path}")
+
+# --- NEW FUNCTIONS FOR SUMMARY PLOTS ---
+
+def log_experiment_results(results, feature_set_name, filename="results/experiment_results.csv"):
+    """
+    Appends the results of a single run to a CSV file.
+    Overwrites the row if the feature_set_name already exists.
+    """
+    os.makedirs(os.path.dirname(filename), exist_ok=True)
+    
+    new_data = {
+        "Feature_Set": feature_set_name,
+        "Accuracy": results["accuracy"],
+        "Precision": results["precision"],
+        "Recall": results["recall"],
+        "F1": results["f1"]
+    }
+    
+    if os.path.exists(filename):
+        df = pd.read_csv(filename)
+        # Remove existing entry for this feature set if it exists (so we can update it)
+        df = df[df["Feature_Set"] != feature_set_name]
+        # Append new data
+        df = pd.concat([df, pd.DataFrame([new_data])], ignore_index=True)
+    else:
+        df = pd.DataFrame([new_data])
+        
+    df.to_csv(filename, index=False)
+    print(f"Logged results for '{feature_set_name}' to {filename}")
+
+def plot_summary_metrics(filename="results/experiment_results.csv"):
+    """
+    Reads the CSV of results and generates 4 comparison bar charts (one for each metric).
+    """
+    if not os.path.exists(filename):
+        return
+
+    df = pd.read_csv(filename)
+    # Sort for cleaner plotting (optional)
+    df = df.sort_values(by="F1", ascending=False)
+
+    metrics = ["Accuracy", "Precision", "Recall", "F1"]
+    os.makedirs("plots", exist_ok=True)
+
+    for metric in metrics:
+        plt.figure(figsize=(10, 6))
+        # Create barplot
+        sns.barplot(data=df, x="Feature_Set", y=metric, hue="Feature_Set", palette="viridis", legend=False)
+        
+        plt.title(f"Comparison of {metric} Across Feature Sets")
+        plt.ylabel(metric)
+        plt.xlabel("Feature Set")
+        plt.xticks(rotation=45)
+        plt.ylim(0, 1.1) # Score is always between 0 and 1
+        
+        # Add text labels on top of bars
+        for i, v in enumerate(df[metric]):
+             plt.text(i, v + 0.01, f"{v:.3f}", ha='center', va='bottom', fontsize=9)
+
+        plt.tight_layout()
+        save_path = f"plots/summary_{metric}.png"
+        plt.savefig(save_path)
+        plt.close()
+        print(f"Saved summary plot to {save_path}")
