@@ -41,7 +41,7 @@ class feature_engineering:
         
         # Simple train/test split for testing (no stratify)
         X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=test_size, random_state=random_state
+            X, y, test_size=test_size, random_state=random_state, stratify=y # Maintain class distribution
         )
 
         return X_train, y_train, X_test, y_test

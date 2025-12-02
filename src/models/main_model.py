@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import HistGradientBoostingClassifier
-from sklearn.metrics import classification_report, confusion_matrix
+from sklearn.metrics import classification_report, confusion_matrix, fbeta_score, make_scorer
 from sklearn.model_selection import RandomizedSearchCV
 import os
 import joblib
@@ -82,6 +82,7 @@ class MainModel:
             max_iter=params.get('max_iter', 100),
             max_depth=params.get('max_depth', 3),
             random_state=params.get('random_state', 42),
+            class_weight=params.get('class_weight', 'balanced'), # Handle class imbalance
         )
 
 
@@ -106,11 +107,13 @@ class MainModel:
 
         model = self.generate_new_model()
 
+        f2_scorer = make_scorer(fbeta_score, beta=2, pos_label=1)
+
         random_search = RandomizedSearchCV(
             model,
             param_distributions=param_dist, # Can choose any value from above ranges
             n_iter=10,                      # Tries 10 different combinations (Could increase this later if needed, but it will take longer)
-            scoring='f1',                   # Optimize for F1 score
+            scoring=f2_scorer,              # Optimize for F2 score (Weights recall more heavily)
             cv=3,                           # 3-fold cross-validation
             # random_state=42,              # Uncomment for reproducibility (I disabled this for now to allow improvement across runs)
             n_jobs=-1                       # Use all available cores to parallelize fits

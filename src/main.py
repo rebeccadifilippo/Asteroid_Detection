@@ -8,6 +8,7 @@ from models.main_model import MainModel
 from preprocessing.data_preprocessing import preprocess_data
 from preprocessing.data_preprocessing import normalize_data
 from evaluation.eval import run_evaluation, compare_models
+from imblearn.over_sampling import RandomOverSampler
 
 
 """
@@ -133,6 +134,9 @@ if __name__ == "__main__":
     print(y_train.name)
 
     X_train_norm, X_test_norm,  =  normalize_data(X_train, X_test)
+
+    ros = RandomOverSampler(random_state=42)
+    X_train_norm, y_train = ros.fit_resample(X_train_norm, y_train) # Oversample minority class in training
 
     #models
     baseline = BaselineModel()
