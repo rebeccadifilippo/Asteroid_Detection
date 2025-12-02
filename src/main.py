@@ -2,13 +2,13 @@ import sys,os
 import argparse
 import kagglehub
 import pandas as pd
+import joblib
 from preprocessing.feature_engineering import feature_engineering
 from models.baseline import BaselineModel
 from models.main_model import MainModel
 from preprocessing.data_preprocessing import preprocess_data
 from preprocessing.data_preprocessing import normalize_data
 from evaluation.eval import run_evaluation, compare_models
-
 
 """
 Main execution script for training, tuning, and evaluating models.
@@ -132,18 +132,42 @@ if __name__ == "__main__":
     print("Selected target col:")
     print(y_train.name)
 
-    X_train_norm, X_test_norm,  =  normalize_data(X_train, X_test)
+    X_train_norm, X_test_norm = normalize_data(X_train, X_test)
 
-    #models
-    baseline = BaselineModel()
-    baseline.fit(y_train)
+    # Models
+    # The baseline only needs to be trained once because y_train never changes.
+    baseline_path = 'baseline_model.joblib'
+    
+    if os.path.exists(baseline_path):
+        baseline = joblib.load(baseline_path)
+        print(f"Baseline model loaded from {baseline_path}")
+    else:
+        print("Training Baseline Model (First Run)...")
+        baseline = BaselineModel()
+        baseline.fit(y_train)
+        joblib.dump(baseline, baseline_path)
+        print(f"Baseline model saved to {baseline_path}")
+    
     mm = MainModel()
+
+    # --- NEW CODE START ---
+    # 1. Define the suffix based on the feature set (e.g., "_physical")
+    feature_suffix = "_" + args.feature_set.replace(',', '_')
+
+    # 2. Update model paths so we don't load the wrong model!
+    # If the user didn't specify a custom path, append the suffix to the default.
+    if args.model_load_path == 'trained_model.joblib':
+        args.model_load_path = f'trained_model{feature_suffix}.joblib'
+        
+    if args.model_save_path == 'trained_model.joblib':
+        args.model_save_path = f'trained_model{feature_suffix}.joblib'
+    # --- NEW CODE END ---
 
     # Hyperparameter tuning if asked for in args
     if args.hyperparameter_tune:
         mm.hyperparameter_tuning(X_train_norm, y_train)
 
-    # Get model (load from file if exists, else create new)
+    # Get model (this will now look for 'trained_model_physical.joblib', fail to find it, and create a new one!)
     model, is_loaded = mm.get_model(load_path=args.model_load_path)
 
     # Trains the model (if not loaded from file) and saves it
@@ -152,37 +176,13 @@ if __name__ == "__main__":
 
     # Run models (run on X_test, returns y_pred)
     y_pred_main_model = mm.predict(model, X_test_norm)
-
     y_baseline_pred = baseline.predict(X_test_norm)
 
+    print(f"Saving plots with suffix: {feature_suffix}")
+
     # Evaluate each model individually
-    results_baseline = run_evaluation(y_test, y_baseline_pred, model_name="Baseline Model", cmap="Blues")
-    results_main = run_evaluation(y_test, y_pred_main_model, model_name="Main Model", cmap="Greens")
+    results_baseline = run_evaluation(y_test, y_baseline_pred, model_name="Baseline_Model", cmap="Blues", filename_suffix="")
+    results_main = run_evaluation(y_test, y_pred_main_model, model_name="Main_Model", cmap="Greens", filename_suffix=feature_suffix)
 
     # Compare them visually and numerically
-    compare_models(results_baseline, results_main)
-  
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
+    compare_models(results_baseline, results_main, filename_suffix=feature_suffix)
